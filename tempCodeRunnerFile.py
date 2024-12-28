@@ -17,6 +17,7 @@ else:
     print("Invalid mode. Please enter 'file' or 'folder'.")
     exit()
 
+    
 for serial_number, details in result.items():
     print(f"\nSerial Number: {serial_number}")
     print(f"Result: {details}")
