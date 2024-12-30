@@ -4,4 +4,4 @@
 
 **Run Using Following Command**
 
->streamlit run app_interface.py
+`streamlit run app_interface.py`
