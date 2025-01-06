@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import zipfile
 import os
+from io import BytesIO
 from input import get_result
 from uid_match import uid_matching
 from address_matching import process_and_match_addresses
@@ -13,14 +14,22 @@ from final_score import put_final_result
 st.title("UID Aadhaar Fraud Detection")
 
 # File uploader for ZIP files
-uploaded_file = st.file_uploader("Upload a ZIP File", type="zip")
+uploaded_zip = st.file_uploader("Upload a ZIP File", type="zip")
+
+# File uploader for input Excel file
+uploaded_excel = st.file_uploader("Upload an Excel File (input.xlsx)", type=["xlsx"])
 
 # Temporary directory for extracted files
 temp_dir = "temp_extracted_files"
 
-if uploaded_file:
+if uploaded_zip and uploaded_excel:
+    # Save uploaded Excel file for processing
+    input_excel_path = "input.xlsx"
+    with open(input_excel_path, "wb") as f:
+        f.write(uploaded_excel.read())
+    
     # Extract ZIP file
-    with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
+    with zipfile.ZipFile(uploaded_zip, 'r') as zip_ref:
         zip_ref.extractall(temp_dir)
         extracted_files = [os.path.join(temp_dir, f) for f in os.listdir(temp_dir) if os.path.isfile(os.path.join(temp_dir, f))]
         st.success("ZIP file extracted successfully.")
@@ -41,7 +50,7 @@ if uploaded_file:
 
     # Process results if available
     if result:
-        output_file_path = get_result(result)
+        output_file_path = get_result(result, input_file=input_excel_path)
 
         # Run additional processing steps
         uid_matching(output_file_path)
@@ -58,10 +67,22 @@ if uploaded_file:
             st.error(f"Error displaying results: {e}")
 
         st.success("Processing complete. Final results have been saved.")
+
+        # Allow downloading the output file
+        with open(output_file_path, "rb") as f:
+            st.download_button(
+                label="Download Processed Excel File",
+                data=f,
+                file_name="output_data.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
     else:
         st.warning("Processing not completed. Please check your input.")
 else:
-    st.warning("Please upload a ZIP file.")
+    if not uploaded_zip:
+        st.warning("Please upload a ZIP file.")
+    if not uploaded_excel:
+        st.warning("Please upload an Excel file (input.xlsx).")
 
 # Clean up temporary directory
 import shutil

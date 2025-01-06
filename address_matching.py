@@ -5,6 +5,8 @@ import nltk
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
+# Ensure the punkt tokenizer is downloaded
+# nltk.download('punkt')
 
 # Initialize the lemmatizer
 lemmatizer = WordNetLemmatizer()
@@ -99,19 +101,23 @@ def address_matching(input_fields, extracted_address):
             print(f"Warning: Field '{field}' not found in weights dictionary. Using default weight of 1.0.")
             weights[field] = 1.0
         
-        field_score = 0
-        if input_value:  # Only proceed if the input value is not empty
+        if input_value.strip():  # Ensure the input value is not empty or just whitespace
+            field_score = 0
             # Check similarity for each part of the extracted address
             for part in extracted_parts:
                 part_score = calculate_similarity(part, input_value)
                 if part_score > field_score:
                     field_score = part_score
-        
-        # Apply weight to the field score
-        field_score *= weights[field]
-        
-        # Store the field score regardless of threshold
-        field_scores[field] = round(field_score * 100, 2)
+            
+            # Apply weight to the field score
+            field_score *= weights[field]
+            
+            # Store the field score
+            field_scores[field] = round(field_score * 100, 2)
+        else:
+            # If the input field is empty, set the score to 0
+            field_scores[field] = 0
+            print(f"Field '{field}' is empty, setting score to 0.")
     
     # Calculate the overall match score (weighted average of field scores above the threshold)
     included_field_scores = [score for score in field_scores.values() if score >= 70]
@@ -137,15 +143,15 @@ def process_and_match_addresses(input_file, output_file):
     excel_data = {}
     for index, row in selected_columns.iterrows():
         input_fields_1 = {
-            'House Flat Number': str(row['House Flat Number']),
-            'Town': str(row['Town']),
-            'Street Road Name': str(row['Street Road Name']),
-            'City': str(row['City']),
-            'Floor Number': str(row['Floor Number']),
-            'PINCODE': str(row['PINCODE']),
-            'Premise Building Name': str(row['Premise Building Name']),
-            'Landmark': str(row['Landmark']),
-            'State': str(row['State'])
+            'House Flat Number': str(row['House Flat Number']).strip(),
+            'Town': str(row['Town']).strip(),
+            'Street Road Name': str(row['Street Road Name']).strip(),
+            'City': str(row['City']).strip(),
+            'Floor Number': str(row['Floor Number']).strip(),
+            'PINCODE': str(row['PINCODE']).strip(),
+            'Premise Building Name': str(row['Premise Building Name']).strip(),
+            'Landmark': str(row['Landmark']).strip(),
+            'State': str(row['State']).strip()
         }
         excel_data[row["SrNo"]] = input_fields_1
 

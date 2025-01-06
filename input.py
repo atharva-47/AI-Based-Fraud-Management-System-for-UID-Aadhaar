@@ -1,8 +1,7 @@
 import pandas as pd
 
-def get_result(results):
-    df = pd.read_excel("input.xlsx")
-
+def get_result(results, input_file='input.xlsx', output_file='output_data.xlsx'):
+    df = pd.read_excel(input_file)
     
     rows = []
     for key, value in results.items():
@@ -30,8 +29,8 @@ def get_result(results):
         df['Document Type'][i] = df2['status'][i]
 
     # Save the DataFrame to an Excel file
-    output_file = 'output_data.xlsx'
     df.to_excel(output_file, index=False)
+    return output_file
 
     #print(f"Data saved to {output_file}")
 
